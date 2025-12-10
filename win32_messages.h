@@ -6,6 +6,7 @@ or in the WindowProc.
 
 # Version
 1 - 18/09/2025
+2 - 10/12/2025 : Try to display registered message names for the 0xC000 -> 0xFFFF range.
 
 # Getting started
 - Define WIN32_MESSAGES_IMPLEMENTATION in ONE translation unit;
@@ -1664,6 +1665,11 @@ win32_message_t g_app_message = { win32_message_ls( "Unknown - \"Application Pri
 win32_message_t g_string_message = { win32_message_ls( "Unknown - \"Registered messages\" range - 0xC000 -> 0xFFFF" ), 0xffffffff };
 win32_message_t g_system_message = { win32_message_ls( "Unknown - \"System reserved\" range - 0x10000 -> 0xFFFFFFFF" ), 0xffffffff };
 
+#define g_win32_message_registerd "Registered message: "
+#define g_win32_message_buffer_length 1024
+char g_win32_message_buffer[ g_win32_message_buffer_length ] = g_win32_message_registerd;
+win32_message_t g_registered_message = { g_win32_message_buffer, 0, 0xffffffff };
+
 #undef win32_message_ls
 
 win32_message_t* win32_message_get_first_with_value( uint32_t value ) {
@@ -1701,7 +1707,19 @@ win32_message_t* win32_message_get_first_with_value( uint32_t value ) {
         } else if ( value >= 0x8000 && value < 0xC000 ) {
             result = &g_app_message;
         } else if ( value >= 0xC000 && value <= 0xFFFF ) {
-            result = &g_string_message;
+            
+            u32 offset = sizeof( g_win32_message_registerd ) - 1;
+            uint32_t length = GetClipboardFormatNameA( value, g_win32_message_buffer + offset, g_win32_message_buffer_length - offset );
+            
+            if ( length ) {
+                g_registered_message.label = g_win32_message_buffer;
+                g_registered_message.length = offset + length;
+                g_registered_message.value = value;
+                result = &g_registered_message;
+            } else {
+                result = &g_string_message;
+            }
+            
         } else if ( value > 0xFFFF ) {
             result = &g_system_message;
         }

@@ -4,6 +4,7 @@ or in the `WindowProc`.
 
 # Version
 `1` - 18/09/2025
+`2` - 10/12/2025 : Try to display registered message names for the 0xC000 -> 0xFFFF range.
 
 # Getting started
 - Define `WIN32_MESSAGES_IMPLEMENTATION` in ONE translation unit;
